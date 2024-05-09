@@ -14,9 +14,20 @@ from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_experimental.autonomous_agents import AutoGPT
 from langchain.chat_models import ChatOpenAI
 
-os.environ["SERPAPI_API_KEY"] = "qew"
-os.environ["OPENAI_API_KEY"] = "123"
+# 中文支持
+css = """
+.gradio-container {
+    font-family: Arial, "Microsoft Yahei", SimSun, sans-serif;
+}
+"""
 
+os.environ["SERPAPI_API_KEY"] = "abc"
+os.environ["OPENAI_API_KEY"] = "sk-a"
+# 定义代理服务器地址和端口
+# proxy_url = "socks5://127.0.0.1:1081"
+# 设置环境变量，不在代码里设置了
+# os.environ["http_proxy"] = proxy_url
+# os.environ["https_proxy"] = proxy_url
 # 构造 AutoGPT 的工具集
 search = SerpAPIWrapper()
 tools = [
@@ -43,12 +54,14 @@ agent = AutoGPT.from_llm_and_tools(
     llm=ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, verbose=True),
     memory=vectorstore.as_retriever(
         search_type="similarity_score_threshold",
-        search_kwargs={"score_threshold": 0.8}),# 实例化 Faiss 的 VectorStoreRetriever
+        search_kwargs={"score_threshold": 0.8}),  # 实例化 Faiss 的 VectorStoreRetriever
 )
+
 
 def gpt_chat(message, history):
     enable_chat = True
     print(message)
+    # print(history)
     if enable_chat:
         agent.chain.verbose = True
         return agent.run([message])
@@ -58,15 +71,21 @@ def gpt_chat(message, history):
 
 
 def launch_gradio():
-    demo = gr.ChatInterface(
+    chat_interface = gr.ChatInterface(
         fn=gpt_chat,
         title="晓东哥哥",
+        submit_btn="提交",
+        clear_btn="清空",
+        retry_btn="重试",
+        undo_btn="撤回",
+        # submit_btn=None,
+        # clear_btn=None,
         # retry_btn=None,
         # undo_btn=None,
         chatbot=gr.Chatbot(height=600),
     )
 
-    demo.launch(share=True, server_name="0.0.0.0")
+    chat_interface.launch(share=True, server_name="0.0.0.0")
 
 
 if __name__ == '__main__':
